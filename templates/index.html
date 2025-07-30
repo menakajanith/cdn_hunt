@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CDN HUNT</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .cdn-known {
+            color: green;
+        }
+        .cdn-unknown {
+            color: red;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #28a745;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CDN HUNT - Advanced CDN Finder</h1>
+        <form id="cdnForm">
+            <div class="form-group">
+                <label for="domain">Domain (e.g., www.example.com):</label>
+                <input type="text" id="domain" name="domain" required>
+            </div>
+            <div class="form-group">
+                <label for="option">Check Type:</label>
+                <select id="option" name="option">
+                    <option value="Hostname">Check Hostname</option>
+                    <option value="Website">Check Website</option>
+                    <option value="Subdomain">Subdomain Check CDN</option>
+                </select>
+            </div>
+            <button type="submit" id="submitBtn">Detect CDN</button>
+        </form>
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processing...</p>
+        </div>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        document.getElementById('cdnForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Disable submit button and show loading spinner
+            const submitBtn = document.getElementById('submitBtn');
+            const loadingDiv = document.getElementById('loading');
+            const resultsDiv = document.getElementById('results');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Detecting...';
+            loadingDiv.style.display = 'block';
+            resultsDiv.innerHTML = ''; // Clear previous results
+
+            const domain = document.getElementById('domain').value;
+            const option = document.getElementById('option').value;
+
+            try {
+                const response = await fetch('/detect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `domain=${encodeURIComponent(domain)}&option=${encodeURIComponent(option)}`
+                });
+                const results = await response.json();
+
+                // Hide loading spinner and enable button
+                loadingDiv.style.display = 'none';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Detect CDN';
+
+                if (results.error) {
+                    resultsDiv.innerHTML = `<p style="color: red;">${results.error}</p>`;
+                    return;
+                }
+
+                let html = '<h2>Results</h2>';
+                if (option === 'Hostname') {
+                    const result = results[0];
+                    html += `
+                        <p><strong>Hostname:</strong> ${result.hostname}</p>
+                        <p><strong>CDN:</strong> <span class="${result.cdn === 'unknown' ? 'cdn-unknown' : 'cdn-known'}">${result.cdn}</span></p>
+                        <p><strong>IP:</strong> ${result.ip}</p>
+                        <p><strong>IP Range:</strong> ${result.ip_range}</p>
+                    `;
+                } else {
+                    html += `
+                        <table>
+                            <tr>
+                                <th>Count</th>
+                                <th>Hostname</th>
+                                <th>CDN</th>
+                                <th>IP</th>
+                                <th>IP Range</th>
+                            </tr>
+                    `;
+                    results.forEach(result => {
+                        html += `
+                            <tr>
+                                <td>${result.count}</td>
+                                <td>${result.hostname}</td>
+                                <td class="${result.cdn === 'unknown' ? 'cdn-unknown' : 'cdn-known'}">${result.cdn}</td>
+                                <td>${result.ip}</td>
+                                <td>${result.ip_range}</td>
+                            </tr>
+                        `;
+                    });
+                    html += '</table>';
+                }
+                resultsDiv.innerHTML = html;
+            } catch (error) {
+                // Handle network or other errors
+                loadingDiv.style.display = 'none';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Detect CDN';
+                resultsDiv.innerHTML = `<p style="color: red;">Error: Could not process request. Please try again.</p>`;
+            }
+        });
+    </script>
+</body>
+</html>
