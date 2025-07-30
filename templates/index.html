@@ -10,9 +10,11 @@
             margin: 0;
             padding: 20px;
             background-color: #f4f4f4;
+            box-sizing: border-box;
         }
         .container {
-            max-width: 800px;
+            max-width: 100%;
+            width: 90%;
             margin: auto;
             background: #fff;
             padding: 20px;
@@ -22,6 +24,8 @@
         h1 {
             text-align: center;
             color: #333;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
         }
         .form-group {
             margin-bottom: 15px;
@@ -29,13 +33,16 @@
         label {
             display: block;
             margin-bottom: 5px;
+            font-size: 1rem;
         }
         input, select {
             width: 100%;
-            padding: 8px;
+            padding: 10px;
             margin-bottom: 10px;
             border: 1px solid #ccc;
             border-radius: 4px;
+            font-size: 1rem;
+            box-sizing: border-box;
         }
         button {
             background-color: #28a745;
@@ -44,6 +51,11 @@
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            font-size: 1rem;
+            width: 100%;
+            max-width: 200px;
+            margin: 0 auto;
+            display: block;
         }
         button:hover {
             background-color: #218838;
@@ -61,6 +73,7 @@
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
+            font-size: 0.9rem;
         }
         th {
             background-color: #f2f2f2;
@@ -88,6 +101,48 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        /* Mobile Responsive Styles */
+        @media screen and (max-width: 600px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+            label, input, select {
+                font-size: 0.9rem;
+            }
+            button {
+                padding: 8px 16px;
+                font-size: 0.9rem;
+                max-width: 100%;
+            }
+            table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            th, td {
+                font-size: 0.8rem;
+                padding: 6px;
+            }
+            .container {
+                padding: 15px;
+                width: 95%;
+            }
+        }
+        @media screen and (max-width: 400px) {
+            h1 {
+                font-size: 1.2rem;
+            }
+            input, select {
+                padding: 8px;
+            }
+            button {
+                padding: 8px;
+                font-size: 0.8rem;
+            }
+            th, td {
+                font-size: 0.7rem;
+            }
         }
     </style>
 </head>
@@ -162,13 +217,16 @@
                 } else {
                     html += `
                         <table>
-                            <tr>
-                                <th>Count</th>
-                                <th>Hostname</th>
-                                <th>CDN</th>
-                                <th>IP</th>
-                                <th>IP Range</th>
-                            </tr>
+                            <thead>
+                                <tr>
+                                    <th>Count</th>
+                                    <th>Hostname</th>
+                                    <th>CDN</th>
+                                    <th>IP</th>
+                                    <th>IP Range</th>
+                                </tr>
+                            </thead>
+                            <tbody>
                     `;
                     results.forEach(result => {
                         html += `
@@ -181,7 +239,10 @@
                             </tr>
                         `;
                     });
-                    html += '</table>';
+                    html += `
+                            </tbody>
+                        </table>
+                    `;
                 }
                 resultsDiv.innerHTML = html;
             } catch (error) {
