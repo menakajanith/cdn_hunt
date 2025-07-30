@@ -21,7 +21,7 @@ mkdir -p "$PROJECT_DIR"
 cd "$PROJECT_DIR"
 
 # Download necessary files from GitHub repository
-REPO_URL="https://raw.githubusercontent.com/<YOUR_USERNAME>/cdn_hunt/main"
+REPO_URL="https://raw.githubusercontent.com/menakajanith/cdn_hunt/main"
 curl -sL "$REPO_URL/app.py" -o app.py
 mkdir -p templates
 curl -sL "$REPO_URL/templates/index.html" -o templates/index.html
