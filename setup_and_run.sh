@@ -1,47 +1,48 @@
-$ErrorActionPreference = "Stop"
+#!/bin/bash
+
+# Exit on any error
+set -e
 
 # Check if Python3 is installed
-if (-not (Get-Command python3 -ErrorAction SilentlyContinue)) {
-    Write-Error "Python3 is not installed. Please install Python3 and try again."
+if ! command -v python3 &> /dev/null; then
+    echo "Python3 is not installed. Please install Python3 and try again."
     exit 1
-}
+fi
 
 # Check if pip is installed
-if (-not (Get-Command pip3 -ErrorAction SilentlyContinue)) {
-    Write-Error "pip3 is not installed. Please install pip3 and try again."
+if ! command -v pip3 &> /dev/null; then
+    echo "pip3 is not installed. Please install pip3 and try again."
     exit 1
-}
+fi
 
 # Create project directory
-$PROJECT_DIR = "cdn_hunt"
-if (-not (Test-Path $PROJECT_DIR)) {
-    New-Item -ItemType Directory -Name $PROJECT_DIR
-}
-Set-Location $PROJECT_DIR
+PROJECT_DIR="cdn_hunt"
+mkdir -p "$PROJECT_DIR"
+cd "$PROJECT_DIR"
 
 # Download necessary files from GitHub repository
-$REPO_URL = "https://raw.githubusercontent.com/menakajanith/cdn_hunt/main"
-Invoke-WebRequest -Uri "$REPO_URL/app.py" -OutFile "app.py"
-if (-not (Test-Path "templates")) {
-    New-Item -ItemType Directory -Name "templates"
-}
-Invoke-WebRequest -Uri "$REPO_URL/templates/index.html" -OutFile "templates/index.html"
+REPO_URL="https://raw.githubusercontent.com/menakajanith/cdn_hunt/main"
+curl -sL "$REPO_URL/app.py" -o app.py
+mkdir -p templates
+curl -sL "$REPO_URL/templates/index.html" -o templates/index.html
 
 # Create and activate virtual environment
 python3 -m venv venv
-.\venv\Scripts\Activate.ps1
+source venv/bin/activate
 
 # Install dependencies
 pip install flask requests dnspython ipwhois beautifulsoup4 colorama tqdm
 
 # Run the Flask application
-Write-Host "Starting CDN HUNT web application..."
-Start-Process python -ArgumentList "app.py" -NoNewWindow
+echo "Starting CDN HUNT web application..."
+python app.py &
 
-# Wait for the server to start
-Start-Sleep -Seconds 5
+# Wait for the server to start (give it a few seconds)
+sleep 5
 
-# Open the web application in the default browser
-Start-Process "http://localhost:5000"
+# Open the web application in the default browser (optional, works on systems with 'xdg-open')
+if command -v xdg-open &> /dev/null; then
+    xdg-open http://localhost:5000
+fi
 
-Write-Host "CDN HUNT is running at http://localhost:5000"
+echo "CDN HUNT is running at http://localhost:5000"
